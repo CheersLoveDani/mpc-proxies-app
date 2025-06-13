@@ -1,5 +1,12 @@
 import { useState, useCallback } from "react";
-import { Search, Plus, FileImage, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Search,
+  Plus,
+  FileImage,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 // Debounce utility function
 function debounce<T extends (...args: any[]) => any>(
@@ -153,7 +160,8 @@ export const CreateProxiesPage = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     performSearch(searchQuery);
-  };  const addToSelected = async (card: Card) => {
+  };
+  const addToSelected = async (card: Card) => {
     // Check if card is already selected
     if (selectedCards.some((selected) => selected.id === card.id)) {
       return;
@@ -166,20 +174,22 @@ export const CreateProxiesPage = () => {
       selectedArt: card,
       artOptions: [],
       showArtSelection: false,
-      loadingArt: true
+      loadingArt: true,
     };
 
-    setSelectedCards(prev => [...prev, newSelectedCard]);
+    setSelectedCards((prev) => [...prev, newSelectedCard]);
 
     // Search for all art versions of this card
     const artOptions = await searchCardArts(card.name);
-    
+
     // Update the card with art options
-    setSelectedCards(prev => prev.map(selectedCard => 
-      selectedCard.id === card.id 
-        ? { ...selectedCard, artOptions, loadingArt: false }
-        : selectedCard
-    ));
+    setSelectedCards((prev) =>
+      prev.map((selectedCard) =>
+        selectedCard.id === card.id
+          ? { ...selectedCard, artOptions, loadingArt: false }
+          : selectedCard
+      )
+    );
   };
   // Search for all art versions of a card
   const searchCardArts = async (cardName: string): Promise<Card[]> => {
@@ -188,13 +198,18 @@ export const CreateProxiesPage = () => {
         `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
           `!"${cardName}"`
         )}&unique=prints&order=released`
-      );      if (response.ok) {
+      );
+      if (response.ok) {
         const data = await response.json();
-        return data.data?.filter((card: Card) => {
-          // Only include cards with valid image URIs (regular or double-faced)
-          return (card.image_uris && card.image_uris.normal) ||
-                 (card.card_faces && card.card_faces[0]?.image_uris?.normal);
-        }) || [];
+        return (
+          data.data?.filter((card: Card) => {
+            // Only include cards with valid image URIs (regular or double-faced)
+            return (
+              (card.image_uris && card.image_uris.normal) ||
+              (card.card_faces && card.card_faces[0]?.image_uris?.normal)
+            );
+          }) || []
+        );
       }
     } catch (error) {
       console.error("Error searching card arts:", error);
@@ -203,8 +218,8 @@ export const CreateProxiesPage = () => {
   };
 
   const toggleArtSelection = (cardId: string) => {
-    setSelectedCards(prev =>
-      prev.map(card =>
+    setSelectedCards((prev) =>
+      prev.map((card) =>
         card.id === cardId
           ? { ...card, showArtSelection: !card.showArtSelection }
           : card
@@ -213,8 +228,8 @@ export const CreateProxiesPage = () => {
   };
 
   const selectArt = (cardId: string, selectedArt: Card) => {
-    setSelectedCards(prev =>
-      prev.map(card =>
+    setSelectedCards((prev) =>
+      prev.map((card) =>
         card.id === cardId
           ? { ...card, selectedArt, showArtSelection: false }
           : card
@@ -251,7 +266,8 @@ export const CreateProxiesPage = () => {
   return (
     <div className="page">
       <h1>Create Proxies</h1>
-      <p>Search for individual cards and add them to your proxy list.</p>      <div className="create-proxies-content">
+      <p>Search for individual cards and add them to your proxy list.</p>{" "}
+      <div className="create-proxies-content">
         <div className="search-section">
           <h3>Card Search</h3>{" "}
           <form onSubmit={handleSearch} className="search-form">
@@ -374,15 +390,15 @@ export const CreateProxiesPage = () => {
                 <div key={`${card.id}-${index}`} className="selected-card">
                   <div className="card-display">
                     <div className="card-image">
-                      {card.selectedArt && (
-                        card.selectedArt.image_uris?.normal || 
-                        card.selectedArt.card_faces?.[0]?.image_uris?.normal
-                      ) ? (
-                        <img 
+                      {card.selectedArt &&
+                      (card.selectedArt.image_uris?.normal ||
+                        card.selectedArt.card_faces?.[0]?.image_uris
+                          ?.normal) ? (
+                        <img
                           src={
-                            card.selectedArt.image_uris?.normal || 
+                            card.selectedArt.image_uris?.normal ||
                             card.selectedArt.card_faces?.[0]?.image_uris?.normal
-                          } 
+                          }
                           alt={card.name}
                           className="card-art"
                         />
@@ -401,47 +417,54 @@ export const CreateProxiesPage = () => {
                           <Loader2 size={14} className="animate-spin" />
                           Loading art options...
                         </div>
-                      ) : card.artOptions && card.artOptions.length > 1 && (
-                        <button
-                          className="btn btn-sm art-selection-toggle"
-                          onClick={() => toggleArtSelection(card.id)}
-                        >
-                          {card.showArtSelection ? (
-                            <>
-                              <ChevronUp size={14} />
-                              Hide Art Options ({card.artOptions.length})
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown size={14} />
-                              Show Art Options ({card.artOptions.length})
-                            </>
-                          )}
-                        </button>
+                      ) : (
+                        card.artOptions &&
+                        card.artOptions.length > 1 && (
+                          <button
+                            className="btn btn-sm art-selection-toggle"
+                            onClick={() => toggleArtSelection(card.id)}
+                          >
+                            {card.showArtSelection ? (
+                              <>
+                                <ChevronUp size={14} />
+                                Hide Art Options ({card.artOptions.length})
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown size={14} />
+                                Show Art Options ({card.artOptions.length})
+                              </>
+                            )}
+                          </button>
+                        )
                       )}
                     </div>
                   </div>
-                  
+
                   {card.showArtSelection && card.artOptions && (
                     <div className="art-selection-grid">
                       {card.artOptions.map((artOption) => (
                         <div
                           key={artOption.id}
                           className={`art-option ${
-                            card.selectedArt?.id === artOption.id ? 'selected' : ''
+                            card.selectedArt?.id === artOption.id
+                              ? "selected"
+                              : ""
                           }`}
                           onClick={() => selectArt(card.id, artOption)}
                         >
-                          <img 
+                          <img
                             src={
-                              artOption.image_uris?.normal || 
+                              artOption.image_uris?.normal ||
                               artOption.card_faces?.[0]?.image_uris?.normal
-                            } 
+                            }
                             alt={`${card.name} - ${artOption.set_name}`}
                             className="art-option-image"
                           />
                           <div className="art-option-info">
-                            <span className="set-name">{artOption.set_name}</span>
+                            <span className="set-name">
+                              {artOption.set_name}
+                            </span>
                             <span className="set-code">({artOption.set})</span>
                           </div>
                         </div>
@@ -476,7 +499,6 @@ export const CreateProxiesPage = () => {
           )}
         </div>
       </div>
-      
       {selectedCards.length > 0 && (
         <div className="action-buttons">
           <button className="btn btn-primary">

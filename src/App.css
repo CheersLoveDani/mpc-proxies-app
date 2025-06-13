@@ -522,9 +522,6 @@ body {
   flex-direction: column;
   gap: 1rem;
   margin-top: 1rem;
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 0.5rem;
 }
 
 .selected-card {
