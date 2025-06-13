@@ -1091,6 +1091,183 @@ body {
   cursor: not-allowed;
 }
 
+/* Selected Cards Header and View Mode Selector */
+.selected-cards-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.view-mode-selector {
+  display: flex;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* Dark mode view mode selector */
+.view-mode-selector {
+  background: var(--surface-color);
+  border-color: var(--border-color);
+}
+
+.view-mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-color);
+  min-width: 40px;
+}
+
+.view-mode-btn:hover {
+  background: var(--border-color);
+}
+
+.view-mode-btn.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.view-mode-btn + .view-mode-btn {
+  border-left: 1px solid var(--border-color);
+}
+
+.view-mode-btn.active + .view-mode-btn {
+  border-left-color: var(--primary-color);
+}
+
+/* Dark mode art selection container */
+.art-selection-container.expanded {
+  border-color: var(--border-color);
+}
+
+/* List View Styles */
+.selected-cards-list.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.selected-card.list-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Grid View Styles */
+.selected-cards-list.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.selected-card.grid-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.selected-card.grid-card .card-display {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.selected-card.grid-card .card-image {
+  width: 160px;
+  height: 224px;
+}
+
+.selected-card.grid-card .card-details h5 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Grid view quantity controls */
+.selected-card.grid-card .quantity-controls {
+  justify-content: center;
+  border-top: none;
+  padding-top: 0;
+  gap: 0.5rem;
+}
+
+.selected-card.grid-card .quantity-controls label {
+  font-size: 0.8rem;
+}
+
+.selected-card.grid-card .quantity-input {
+  width: 50px;
+}
+
+/* Improved art selection grid for different view modes */
+.selected-card.grid-card .art-selection-grid {
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+  max-height: 300px;
+}
+
+.selected-card.grid-card .art-option-image {
+  height: 112px;
+}
+
+/* Animated Art Selection Container */
+.art-selection-container {
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+}
+
+.art-selection-container.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+}
+
+.art-selection-container.expanded {
+  max-height: 500px;
+  opacity: 1;
+  margin-top: 1rem;
+}
+
+/* Improved Art Selection Toggle Button */
+.art-selection-toggle {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--primary-hover)
+  );
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(100, 108, 255, 0.2);
+}
+
+.art-selection-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(100, 108, 255, 0.3);
+}
+
+.art-selection-toggle:active {
+  transform: translateY(0);
+}
+
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
   :root {
@@ -1265,8 +1442,7 @@ body {
 
   .suggestion-info {
     gap: 0.5rem;
-  }
-  /* Responsive styles for card art selection */
+  } /* Responsive styles for card art selection */
   .card-display {
     flex-direction: column;
     gap: 0.75rem;
@@ -1275,6 +1451,28 @@ body {
   .card-image {
     width: 150px;
     height: 210px;
+    align-self: center;
+  }
+
+  /* Grid view responsive adjustments */
+  .selected-cards-list.grid-view {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .selected-card.grid-card .card-image {
+    width: 120px;
+    height: 168px;
+  }
+
+  /* View mode selector responsive */
+  .selected-cards-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .view-mode-selector {
     align-self: center;
   }
 

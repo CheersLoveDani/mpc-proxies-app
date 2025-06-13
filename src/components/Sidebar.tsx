@@ -18,7 +18,7 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const navItems = [
     { path: "/", icon: Home, label: "Home" },
     { path: "/settings", icon: Settings, label: "Settings" },
-    { path: "/create-proxies", icon: Plus, label: "Create" },
+    { path: "/create-proxies", icon: Plus, label: "Convert" },
     { path: "/download-proxies", icon: Download, label: "Download" },
     { path: "/custom-proxies", icon: ExternalLink, label: "Custom" },
   ];

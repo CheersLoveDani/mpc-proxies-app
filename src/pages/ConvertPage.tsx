@@ -6,6 +6,8 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  List,
+  Grid3X3,
 } from "lucide-react";
 
 // Debounce utility function
@@ -50,7 +52,7 @@ interface SelectedCard extends Card {
   loadingArt?: boolean;
 }
 
-export const CreateProxiesPage = () => {
+export const ConvertPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>([]);
   const [searchResults, setSearchResults] = useState<Card[]>([]);
@@ -61,6 +63,7 @@ export const CreateProxiesPage = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [decklistText, setDecklistText] = useState("");
   const [isDecklistLoading, setIsDecklistLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   // Debounced search for suggestions
   const debouncedSuggestionSearch = useCallback(
@@ -363,10 +366,9 @@ export const CreateProxiesPage = () => {
     setIsDecklistLoading(false);
     setDecklistText(""); // Clear the textarea after processing
   };
-
   return (
     <div className="page">
-      <h1>Create Proxies</h1>
+      <h1>Convert</h1>
       <p>Search for individual cards and add them to your proxy list.</p>{" "}
       <div className="create-proxies-content">
         <div className="search-section">
@@ -480,7 +482,6 @@ export const CreateProxiesPage = () => {
             </div>
           )}
         </div>
-
         {/* Decklist Import Section */}
         <div className="decklist-import-section">
           <h3>Import Decklist</h3>
@@ -516,18 +517,48 @@ Brainstorm`}
               )}
             </button>
           </div>
-        </div>
-
+        </div>{" "}
         <div className="selected-cards-section">
-          <h3>Selected Cards ({selectedCards.length})</h3>
+          <div className="selected-cards-header">
+            <h3>Selected Cards ({selectedCards.length})</h3>
+            {selectedCards.length > 0 && (
+              <div className="view-mode-selector">
+                <button
+                  className={`view-mode-btn ${
+                    viewMode === "list" ? "active" : ""
+                  }`}
+                  onClick={() => setViewMode("list")}
+                  title="List View"
+                >
+                  <List size={16} />
+                </button>
+                <button
+                  className={`view-mode-btn ${
+                    viewMode === "grid" ? "active" : ""
+                  }`}
+                  onClick={() => setViewMode("grid")}
+                  title="Grid View"
+                >
+                  <Grid3X3 size={16} />
+                </button>
+              </div>
+            )}
+          </div>
           {selectedCards.length === 0 ? (
             <div className="empty-selection">
               <p>No cards selected yet. Search and add cards above.</p>
             </div>
           ) : (
-            <div className="selected-cards-list">
+            <div
+              className={`selected-cards-list ${
+                viewMode === "grid" ? "grid-view" : "list-view"
+              }`}
+            >
               {selectedCards.map((card: SelectedCard, index) => (
-                <div key={`${card.id}-${index}`} className="selected-card">
+                <div
+                  key={`${card.id}-${index}`}
+                  className={`selected-card ${viewMode}-card`}
+                >
                   <div className="card-display">
                     <div className="card-image">
                       {card.selectedArt &&
@@ -548,10 +579,12 @@ Brainstorm`}
                     </div>
                     <div className="card-details">
                       <h5>{card.name}</h5>
-                      <p>
-                        {card.mana_cost || "—"} • {card.type_line} •{" "}
-                        {card.selectedArt?.set_name || card.set_name}
-                      </p>
+                      {viewMode === "list" && (
+                        <p>
+                          {card.mana_cost || "—"} • {card.type_line} •{" "}
+                          {card.selectedArt?.set_name || card.set_name}
+                        </p>
+                      )}
                       {card.loadingArt ? (
                         <div className="art-loading">
                           <Loader2 size={14} className="animate-spin" />
@@ -567,12 +600,12 @@ Brainstorm`}
                             {card.showArtSelection ? (
                               <>
                                 <ChevronUp size={14} />
-                                Hide Art Options ({card.artOptions.length})
+                                Hide Art Options
                               </>
                             ) : (
                               <>
                                 <ChevronDown size={14} />
-                                Show Art Options ({card.artOptions.length})
+                                {card.artOptions.length} Art Options
                               </>
                             )}
                           </button>
@@ -581,36 +614,44 @@ Brainstorm`}
                     </div>
                   </div>
 
-                  {card.showArtSelection && card.artOptions && (
-                    <div className="art-selection-grid">
-                      {card.artOptions.map((artOption) => (
-                        <div
-                          key={artOption.id}
-                          className={`art-option ${
-                            card.selectedArt?.id === artOption.id
-                              ? "selected"
-                              : ""
-                          }`}
-                          onClick={() => selectArt(card.id, artOption)}
-                        >
-                          <img
-                            src={
-                              artOption.image_uris?.normal ||
-                              artOption.card_faces?.[0]?.image_uris?.normal
-                            }
-                            alt={`${card.name} - ${artOption.set_name}`}
-                            className="art-option-image"
-                          />
-                          <div className="art-option-info">
-                            <span className="set-name">
-                              {artOption.set_name}
-                            </span>
-                            <span className="set-code">({artOption.set})</span>
+                  <div
+                    className={`art-selection-container ${
+                      card.showArtSelection ? "expanded" : "collapsed"
+                    }`}
+                  >
+                    {card.artOptions && (
+                      <div className="art-selection-grid">
+                        {card.artOptions.map((artOption) => (
+                          <div
+                            key={artOption.id}
+                            className={`art-option ${
+                              card.selectedArt?.id === artOption.id
+                                ? "selected"
+                                : ""
+                            }`}
+                            onClick={() => selectArt(card.id, artOption)}
+                          >
+                            <img
+                              src={
+                                artOption.image_uris?.normal ||
+                                artOption.card_faces?.[0]?.image_uris?.normal
+                              }
+                              alt={`${card.name} - ${artOption.set_name}`}
+                              className="art-option-image"
+                            />
+                            <div className="art-option-info">
+                              <span className="set-name">
+                                {artOption.set_name}
+                              </span>
+                              <span className="set-code">
+                                ({artOption.set})
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
                   <div className="quantity-controls">
                     <label>
