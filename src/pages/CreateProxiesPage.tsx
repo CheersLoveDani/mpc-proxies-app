@@ -59,6 +59,8 @@ export const CreateProxiesPage = () => {
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [decklistText, setDecklistText] = useState("");
+  const [isDecklistLoading, setIsDecklistLoading] = useState(false);
 
   // Debounced search for suggestions
   const debouncedSuggestionSearch = useCallback(
@@ -263,13 +265,112 @@ export const CreateProxiesPage = () => {
       )
     );
   };
+
+  // Parse decklist and add cards to selected
+  const processDecklistLine = (
+    line: string
+  ): { name: string; quantity: number } | null => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("#")) {
+      return null; // Skip empty lines and comments
+    }
+
+    // Match various decklist formats:
+    // "4 Lightning Bolt"
+    // "4x Lightning Bolt"
+    // "4 Lightning Bolt (Set Code)"
+    // "Lightning Bolt"
+    const match = trimmed.match(/^(\d+)x?\s+(.+?)(?:\s+\([^)]+\))?$/);
+
+    if (match) {
+      const quantity = parseInt(match[1]);
+      const cardName = match[2].trim();
+      return { name: cardName, quantity };
+    } else {
+      // No quantity specified, assume 1
+      const cardName = trimmed.replace(/\s+\([^)]+\)$/, "").trim(); // Remove set code if present
+      return { name: cardName, quantity: 1 };
+    }
+  };
+
+  const handleDecklistSubmit = async () => {
+    if (!decklistText.trim()) return;
+
+    setIsDecklistLoading(true);
+    const lines = decklistText.split("\n");
+    const cardEntries: { name: string; quantity: number }[] = [];
+
+    // Parse all lines
+    for (const line of lines) {
+      const entry = processDecklistLine(line);
+      if (entry) {
+        cardEntries.push(entry);
+      }
+    }
+
+    // Process each unique card
+    for (const entry of cardEntries) {
+      try {
+        // Search for the card
+        const response = await fetch(
+          `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(
+            entry.name
+          )}`
+        );
+
+        if (response.ok) {
+          const card = await response.json();
+
+          // Check if card is already selected
+          const existingCardIndex = selectedCards.findIndex(
+            (selected) => selected.id === card.id
+          );
+
+          if (existingCardIndex >= 0) {
+            // Update quantity if card already exists
+            setSelectedCards((prev) =>
+              prev.map((selectedCard, index) =>
+                index === existingCardIndex
+                  ? {
+                      ...selectedCard,
+                      quantity: selectedCard.quantity + entry.quantity,
+                    }
+                  : selectedCard
+              )
+            );
+          } else {
+            // Add new card
+            const artOptions = await searchCardArts(card.name);
+            const newSelectedCard: SelectedCard = {
+              ...card,
+              quantity: entry.quantity,
+              selectedArt: card,
+              artOptions,
+              showArtSelection: false,
+              loadingArt: false,
+            };
+
+            setSelectedCards((prev) => [...prev, newSelectedCard]);
+          }
+        } else {
+          console.warn(`Card not found: ${entry.name}`);
+        }
+      } catch (error) {
+        console.error(`Error adding card ${entry.name}:`, error);
+      }
+    }
+
+    setIsDecklistLoading(false);
+    setDecklistText(""); // Clear the textarea after processing
+  };
+
   return (
     <div className="page">
       <h1>Create Proxies</h1>
       <p>Search for individual cards and add them to your proxy list.</p>{" "}
       <div className="create-proxies-content">
         <div className="search-section">
-          <h3>Card Search</h3>{" "}
+          <h3>Card Search</h3>
           <form onSubmit={handleSearch} className="search-form">
             <div className="search-input-group">
               <Search size={20} className="search-icon" />
@@ -331,6 +432,7 @@ export const CreateProxiesPage = () => {
               </button>
             </div>
           </form>
+
           {hasSearched && (
             <div className="search-results">
               <h4>Search Results ({searchResults.length})</h4>
@@ -378,6 +480,44 @@ export const CreateProxiesPage = () => {
             </div>
           )}
         </div>
+
+        {/* Decklist Import Section */}
+        <div className="decklist-import-section">
+          <h3>Import Decklist</h3>
+          <p>Paste or type a decklist to add multiple cards at once.</p>
+          <div className="decklist-input-group">
+            <textarea
+              value={decklistText}
+              onChange={(e) => setDecklistText(e.target.value)}
+              placeholder={`Example formats:
+4 Lightning Bolt
+3x Counterspell
+2 Jace, the Mind Sculptor (WAR)
+Brainstorm`}
+              className="decklist-textarea"
+              rows={6}
+              disabled={isDecklistLoading}
+            />
+            <button
+              onClick={handleDecklistSubmit}
+              className="btn btn-primary"
+              disabled={isDecklistLoading || !decklistText.trim()}
+            >
+              {isDecklistLoading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Plus size={16} />
+                  Add All Cards
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
         <div className="selected-cards-section">
           <h3>Selected Cards ({selectedCards.length})</h3>
           {selectedCards.length === 0 ? (
